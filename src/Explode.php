@@ -426,10 +426,198 @@ WHERE
         echo 'Removed '. $dir . '<br/>';
       }
     }
+    // RM admin
+    $admin = $this->removeBasicAdminModule();
 
   }
 
+  private function removeBasicAdminModule(){
+    $modules = $this->getRemoveBasicAdminModule();
+    if(!empty($modules)){
+      foreach($modules as $module){
+        $controller_path = Yii::getAlias('@modules') . DS . Yii::$app->controller->module->id . '/controllers';
+    		$model_path = Yii::getAlias('@modules') . DS . Yii::$app->controller->module->id . '/models';
+    		$view_path = Yii::getAlias('@modules') . DS . Yii::$app->controller->module->id . '/views';
+    		$controller_name = strtoupper(substr($module, 0,1)) . strtolower(substr($module, 1)) . 'Controller';
+    		$models = explode('_', $module);
+    		$model_name = '';
+    		foreach ($models as $m){
+    			$model_name .= strtoupper(substr($m, 0,1)) . strtolower(substr($m, 1));
+    		}
+    		$controller_file = $controller_path . DS . $controller_name .'.php';
+        $model_file = $model_path . DS . $model_name .'.php';
+        //view($module);
+        if(file_exists($controller_file)){
+      	    unlink($controller_file);
+      	}
+        if(file_exists($model_file)){
+      	    unlink($model_file);
+      	}
+        RemoveDir($controller_path . "/_templetes");
+        RemoveDir($controller_path . "/_templates");
+        RemoveDir($view_path . "/$module");
 
+      }
+      $a = Yii::$app->db->createCommand()->delete('admin_menu',[
+        'route'=>$modules
+        ])->execute();
+      //view($a);
+    }
+    //exit;
+  }
+
+  private function getRemoveBasicAdminModule(){
+    $l = (new \yii\db\Query())->from('admin_menu')->orderBy(['route'=>SORT_ASC])->all();
+    $r = $r2 = $r3 = [];
+    foreach($l as $v){
+      if($v['route'] != '#'){
+        $r[$v['route']][] = $v['child_code'];
+      }
+      if(!in_array($v['route'],$r2)){
+        $r2[] = $v['route'];
+      }
+
+    }
+    foreach($r2 as $route){
+      if(!in_array($route, $this->basicAdminModule())){
+        $r3[] = $route;
+      }
+    }
+
+    return $r3;
+
+  }
+
+private function basicAdminModule(){
+  return [
+    "",
+    "#",
+    "/",
+    //"acc_acounts",
+    //"acc_bills",
+    //"acc_funds",
+    //"acc_resons",
+    "adverts",
+    //"ad_forms",
+    //"ad_helps",
+    "ad_language",
+    //"ad_module",
+    //"ad_template",
+    //"ad_templete",
+    //"ad_translate",
+    //"applications",
+    //"appstore",
+    //"backup",
+    //"backup_data",
+    //"bills",
+    "box",
+    "branches",
+    //"cars",
+    //"class",
+    //"class_manage",
+    //"class_module",
+    //"class_reserve",
+    "comments",
+    "contacts",
+    "content",
+    //"courses",
+    //"crawler",
+    "css",
+    "ctemplete",
+    "currency",
+    "customers",
+    "customer_groups",
+    "customize_templete",
+    "custom_page",
+    //"cvideos",
+    //"departure_places",
+    //"developer",
+    //"distances",
+    "domains",
+    //"domains_manages",
+    //"domain_whois",
+    "emails",
+    "emails_respon",
+    "emails_subscribes",
+    "examples_data",
+    "explode",
+    "files",
+    "files_manages",
+    "filters",
+    "filter_place",
+    //"foods",
+    //"foods_categorys",
+    "form_design",
+    "form_design_category",
+    "ftp_server",
+    //"goods_fields",
+    //"goods_groups",
+    //"guest_groups",
+    //"guide",
+    //"guides",
+    "helps",
+    "helps_categorys",
+    //"hight_way",
+    //"holidays",
+    "hotels",
+    "html_dom",
+    "local",
+    "logout",
+    "mailbox",
+    "members",
+    "menu",
+    "mytemplete",
+    //"nationality_groups",
+    "notifications",
+    "orders",
+    "permission",
+    "places",
+    //"pos",
+    "positions",
+    //"price_manager",
+    "product_unit_exchange",
+    "promotion",
+    "promotions",
+    //"quotations",
+    "redirects",
+    //"rooms_categorys",
+    "root_configs",
+    //"sale_sent_request",
+    //"seasons",
+    "seo",
+    "services",
+    "services_provider",
+    "settings",
+    //"shops",
+    //"shops_packages",
+    "siteconfigs",
+    "site_groups",
+    "slide",
+    //"stations",
+    //"students",
+    "supports",
+    "support_category",
+    "system_filters",
+    "system_logs",
+    "system_permission_groups",
+    "tags",
+    //"teachers",
+    "text_attrs",
+    "text_instructions",
+    "text_translate",
+    //"tickets",
+    //"tours_programs",
+    //"tour_profiles",
+    "trash",
+    "users",
+    "user_currency",
+    "user_text_translate",
+    //"v2menu",
+    //"vehicles_categorys",
+    //"vehicles_makers",
+    //"warehouse"
+  ];
+}
   public function expBasicAll(){
     // Explode data
     $this->expBasicData();
